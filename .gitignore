@@ -1,0 +1,73 @@
+# =========================
+# Rails (shopify-dashboard-api)
+# =========================
+
+# Ignore bundler config
+shopify-dashboard-api/.bundle
+
+# Ignore all environment files in Rails folder
+shopify-dashboard-api/.env*
+# (if you put .env in root of shopify-dashboard-api, too)
+
+# Ignore Rails logs (but keep the folder)
+/shopify-dashboard-api/log/*
+!/shopify-dashboard-api/log/.keep
+
+# Ignore Rails tmp (but keep the folder)
+/shopify-dashboard-api/tmp/*
+!/shopify-dashboard-api/tmp/.keep
+
+# Ignore Rails PID files (but keep the folder)
+/shopify-dashboard-api/tmp/pids/*
+!/shopify-dashboard-api/tmp/pids/
+!/shopify-dashboard-api/tmp/pids/.keep
+
+# Ignore Rails storage (but keep the folder)
+/shopify-dashboard-api/storage/*
+!/shopify-dashboard-api/storage/.keep
+
+# Ignore Rails temp storage (but keep the folder)
+/shopify-dashboard-api/tmp/storage/*
+!/shopify-dashboard-api/tmp/storage/
+!/shopify-dashboard-api/tmp/storage/.keep
+
+# Ignore Rails master key
+/shopify-dashboard-api/config/master.key
+
+
+# =========================
+# React (dashboard-ui)
+# =========================
+
+# Ignore React dependencies
+/dashboard-ui/node_modules
+
+# Ignore Yarn/PNP files (if used)
+/.pnp
+.pnp.js
+
+# Ignore React build / coverage
+/dashboard-ui/build
+/dashboard-ui/coverage
+
+# Ignore React environment files
+/dashboard-ui/.env.local
+/dashboard-ui/.env.development.local
+/dashboard-ui/.env.test.local
+/dashboard-ui/.env.production.local
+
+# Ignore React debug logs
+/dashboard-ui/npm-debug.log*
+/dashboard-ui/yarn-debug.log*
+/dashboard-ui/yarn-error.log*
+
+
+# =========================
+# Shared / System files
+# =========================
+
+.DS_Store
+*.swp
+
+# Ignore any .env files at the root of the monorepo
+/.env*
