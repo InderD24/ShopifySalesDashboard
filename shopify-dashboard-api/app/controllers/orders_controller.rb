@@ -39,37 +39,53 @@ class OrdersController < ApplicationController
       average_order_value:   stats.average_order_value
     }
   end
-    def customers_metric
-    start_date = params[:start]
-    end_date   = params[:end]
+def customers_metric
+  start_date = params[:start]
+  end_date   = params[:end]
 
-    base_url = "https://#{ENV['SHOPIFY_STORE']}/admin/api/2023-01/orders.json?status=any"
-    if start_date.present? && end_date.present?
-      created_min = "#{start_date}T00:00:00Z"
-      created_max = "#{end_date}T23:59:59Z"
-      base_url += "&created_at_min=#{created_min}&created_at_max=#{created_max}"
+  # Build the Shopify URL just like in index…
+  base_url = "https://#{ENV['SHOPIFY_STORE']}/admin/api/2023-01/orders.json?status=any"
+  if start_date.present? && end_date.present?
+    created_min = "#{start_date}T00:00:00Z"
+    created_max = "#{end_date}T23:59:59Z"
+    base_url += "&created_at_min=#{created_min}&created_at_max=#{created_max}"
+  end
+
+  resp = Faraday.get(base_url) do |req|
+    req.headers['X-Shopify-Access-Token'] = ENV['SHOPIFY_ACCESS_TOKEN']
+    req.headers['Content-Type']           = 'application/json'
+  end
+  return render( json: { error: "Failed to fetch orders", status: resp.status }, status: :bad_request ) unless resp.success?
+
+  orders = JSON.parse(resp.body)["orders"]
+
+  # 1) Drop any orders where customer info is missing
+  orders = orders.select { |o| o["customer"] && o["customer"]["id"] }
+
+  # 2) Group _all_ those in-range orders by customer ID
+  grouped = orders.group_by { |o| o["customer"]["id"] }
+
+  new_count       = 0
+  returning_count = 0
+  range_start     = Date.parse(start_date) if start_date
+
+  grouped.each do |cust_id, cust_orders|
+    # 3) Find that customer’s earliest order date in our fetched set
+    first_order_at = cust_orders
+                      .map   { |o| Date.parse(o["created_at"]) }
+                      .min
+
+    # 4) Compare it to the window’s start date
+    if first_order_at < range_start
+      returning_count += 1
+    else
+      new_count += 1
     end
+  end
 
-    response = Faraday.get(base_url) do |req|
-      req.headers['X-Shopify-Access-Token'] = ENV['SHOPIFY_ACCESS_TOKEN']
-      req.headers['Content-Type']           = 'application/json'
-    end
-
-    unless response.success?
-      return render json: { error: "Failed to fetch orders", status: response.status },
-                    status: :bad_request
-    end
-
-    orders = JSON.parse(response.body)["orders"]
-
-    # Group orders by customer ID
-    by_customer = orders.group_by { |o| o["customer"]["id"] }
-    new_count       = by_customer.count { |_cust_id, arr| arr.size == 1 }
-    returning_count = by_customer.count { |_cust_id, arr| arr.size > 1 }
-
-    render json: {
-      new_customers:       new_count,
-      returning_customers: returning_count
-    }
+  render json: {
+    new_customers:       new_count,
+    returning_customers: returning_count
+  }
   end
 end
